@@ -14,7 +14,7 @@ export const registerValidator = [
     .withMessage('Password must be at least 6 characters long'),
   body('role')
     .optional()
-    .isIn(['Fan', 'Admin', 'Manager'])
+    .isIn(['Fan', 'Coach', 'Player'])
     .withMessage('Invalid role specified')
 ];
 

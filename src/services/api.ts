@@ -41,4 +41,47 @@ export const authApi = {
   }
 };
 
+export const playerApi = {
+  async getPlayers(search?: string) {
+    const response = await api.get(`/api/players${search ? `?search=${search}` : ''}`);
+    return response.data;
+  },
+
+  async checkPlayer(name: string) {
+    const response = await api.get(`/api/players/check/${encodeURIComponent(name)}`);
+    return response.data;
+  },
+
+  async addPlayer(playerData: {
+    Player_Name: string;
+    Player_Age: number;
+    Player_Team: string;
+    Player_Role: string;
+    Player_Type: string;
+  }) {
+    const response = await api.post('/api/players', playerData);
+    return response.data;
+  }
+};
+
+export const teamApi = {
+  async getTeams(search?: string) {
+    const response = await api.get(`/api/teams${search ? `?search=${search}` : ''}`);
+    return response.data;
+  },
+
+  async checkTeam(name: string) {
+    const response = await api.get(`/api/teams/check/${encodeURIComponent(name)}`);
+    return response.data;
+  },
+
+  async addTeam(teamData: {
+    Team_Name: string;
+    Team_Coach?: string;
+  }) {
+    const response = await api.post('/api/teams', teamData);
+    return response.data;
+  }
+};
+
 export default api;

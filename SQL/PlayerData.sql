@@ -249,3 +249,8 @@ ADD CONSTRAINT role_ibfk_1 FOREIGN KEY (role_id) REFERENCES roles(id);
 alter table user drop foreign key role_ibfk_1;
 
 TRUNCATE TABLE User;
+select * from user;
+select * from player;
+SELECT * FROM player WHERE Player_Name LIKE '%Rohit%';
+select * from coach;
+

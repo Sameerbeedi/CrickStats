@@ -15,15 +15,8 @@ ALTER TABLE User ADD COLUMN role_id INT;
 -- Assuming the 'roles' table is already created, add a foreign key constraint
 ALTER TABLE User ADD CONSTRAINT FK_User_Role FOREIGN KEY (role_id) REFERENCES roles(id);
 
-
+select * from user;
 SELECT * FROM User WHERE role_id = (SELECT id FROM roles WHERE role_name = 'Coach');
 
 
-SELECT 
-    U.User_ID, 
-    U.Username, 
-    U.User_Password, 
-    U.User_Email, 
-    R.role_name
-FROM User U
-JOIN roles R ON U.role_id = R.id;
+

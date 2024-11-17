@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Lock, Mail, User, AlertCircle } from 'lucide-react';
 import axios from 'axios';
-//import { UserRole } from '../types/auth';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +9,7 @@ const Signup = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    //role: 'Fan' as UserRole,
+    role: 'Fan', // default role
   });
   const [loading, setLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
@@ -55,7 +54,7 @@ const Signup = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        //role: formData.role
+        role: formData.role, // Include the role in the request data
       });
 
       if (response.data.success) {
@@ -103,6 +102,7 @@ const Signup = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Username Input */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700">
                 Username
@@ -124,6 +124,7 @@ const Signup = () => {
               </div>
             </div>
 
+            {/* Email Input */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -146,24 +147,7 @@ const Signup = () => {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                User Role
-              </label>
-              <select
-                id="role"
-                name="role"
-                //value={formData.role}
-                onChange={handleChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
-              >
-                <option value="Fan">Fan</option>
-                <option value="Player">Player</option>
-                <option value="Coach">Coach</option>
-               
-              </select>
-            </div>
-
+            {/* Password Input */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -180,11 +164,12 @@ const Signup = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Choose a password"
+                  placeholder="Enter your password"
                 />
               </div>
             </div>
 
+            {/* Confirm Password Input */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 Confirm Password
@@ -206,13 +191,31 @@ const Signup = () => {
               </div>
             </div>
 
+            {/* User Role Input */}
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                User Role
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+              >
+                <option value="Fan">Fan</option>
+                <option value="Player">Player</option>
+                <option value="Coach">Coach</option>
+              </select>
+            </div>
+
+            {/* Submit Button */}
             <div>
               <button
                 type="submit"
-                disabled={loading || connectionStatus !== 'connected'}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                {loading ? 'Creating account...' : 'Create account'}
+                {loading ? 'Registering...' : 'Sign Up'}
               </button>
             </div>
           </form>

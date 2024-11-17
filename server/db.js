@@ -38,6 +38,12 @@ export const addPlayer = async (player) => {
   return result.insertId;
 };
 
+export const getPlayers = async () => {
+  const [rows] = await pool.execute('SELECT * FROM Player');
+  return rows;
+};
+
+
 export const addTeam = async (team) => {
   const [result] = await pool.execute(
     'INSERT INTO Team (Team_Name, Team_Coach) VALUES (?, ?)',

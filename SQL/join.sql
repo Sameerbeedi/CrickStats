@@ -86,4 +86,11 @@ JOIN
 ON 
     perf.Match_ID = m.Match_ID;
     
-
+SELECT 
+    U.User_ID, 
+    U.Username, 
+    U.User_Password, 
+    U.User_Email, 
+    R.role_name
+FROM User U
+JOIN roles R ON U.User_role = R.role_name;
