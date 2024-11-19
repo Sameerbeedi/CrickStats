@@ -30,6 +30,44 @@ export const loginUser = async (email) => {
   return rows[0];
 };
 
+export const deletePlayer = async (playerId) => {
+  // Start a transaction
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Delete related records first
+    await connection.execute(
+      'DELETE FROM Performance WHERE Player_ID = ?',
+      [playerId]
+    );
+
+    await connection.execute(
+      'DELETE FROM PlayerStats WHERE Player_ID = ?',
+      [playerId]
+    );
+
+    await connection.execute(
+      'DELETE FROM report WHERE Player_ID = ?',
+      [playerId]
+    );
+
+    // Finally delete the player
+    const [result] = await connection.execute(
+      'DELETE FROM Player WHERE Player_ID = ?',
+      [playerId]
+    );
+
+    await connection.commit();
+    return result.affectedRows > 0;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+};
+
 export const addPlayer = async (player) => {
   const [result] = await pool.execute(
     'INSERT INTO Player (Player_Name, Player_Age, Player_Team, Player_Role, Player_Type, Player_Stats, Player_DOB) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -42,7 +80,6 @@ export const getPlayers = async () => {
   const [rows] = await pool.execute('SELECT * FROM Player');
   return rows;
 };
-
 
 export const addTeam = async (team) => {
   const [result] = await pool.execute(

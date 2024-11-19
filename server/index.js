@@ -108,6 +108,59 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Delete player endpoint
+app.delete('/api/players/:id', async (req, res) => {
+  try {
+    const playerId = req.params.id;
+
+    // First check if player exists
+    const [player] = await pool.execute(
+      'SELECT * FROM Player WHERE Player_ID = ?',
+      [playerId]
+    );
+
+    if (!player || player.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player not found'
+      });
+    }
+
+    // Delete related records first (due to foreign key constraints)
+    await pool.execute(
+      'DELETE FROM Performance WHERE Player_ID = ?',
+      [playerId]
+    );
+
+    await pool.execute(
+      'DELETE FROM PlayerStats WHERE Player_ID = ?',
+      [playerId]
+    );
+
+    await pool.execute(
+      'DELETE FROM report WHERE Player_ID = ?',
+      [playerId]
+    );
+
+    // Finally delete the player
+    await pool.execute(
+      'DELETE FROM Player WHERE Player_ID = ?',
+      [playerId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Player deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting player:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete player'
+    });
+  }
+});
+
 // Check if player exists endpoint
 app.get('/api/players/check/:name', async (req, res) => {
   const playerName = req.params.name;
@@ -209,118 +262,6 @@ app.post('/api/players', async (req, res) => {
     });
   }
 });
-
-// Check if team endpoint exists 
-app.get('/api/team/check/:name', async (req, res) => {
-  const teamName = req.params.name;
-
-  try {
-    const [team] = await pool.execute(
-      'SELECT COUNT(*) as count FROM Team WHERE Team_Name = ?',
-      [teamName]
-    );
-
-    const exists = team[0].count > 0;
-
-    return res.json({
-      success: true,
-      exists,
-      message: exists ? 'Team found in database' : 'Team not found in database'
-    });
-
-  } catch (err) {
-    console.error('Database error:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'An error occurred while checking team existence',
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
-});
-
-// GET endpoint for fetching/searching team
-app.get('/api/teams', async (req, res) => {
-  const searchTerm = req.query.search;
-
-  try {
-    let query = 'SELECT * FROM Team';
-    let params = [];
-
-    if (searchTerm) {
-      query = 'SELECT * FROM Team WHERE Team_Name LIKE ?';
-      params = [`%${searchTerm}%`];
-    }
-
-    const [results] = await pool.execute(query, params);
-
-    return res.json({
-      success: true,
-      teams: results,
-      count: results.length
-    });
-
-  } catch (err) {
-    console.error('Database error:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'An error occurred while fetching teams',
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
-});
-
-app.post('/api/team', async (req, res) => {
-  const { Team_ID, Team_Name, Team_Coach } = req.body;
-
-  // Check for required fields
-  if (!Team_ID || !Team_Name || !Team_Coach) {
-    return res.status(400).json({
-      success: false,
-      message: 'All fields are required',
-    });
-  }
-
-  try {
-    // Insert the new team into the database
-    const query = `
-      INSERT INTO Team 
-      (Team_ID, Team_Name, Team_Coach) 
-      VALUES (?, ?, ?)
-    `;
-
-    const params = [Team_ID, Team_Name, JSON.stringify(Team_Coach)];
-
-    const [result] = await pool.execute(query, params);
-
-    // Fetch the newly added team to return in the response
-    const [newTeam] = await pool.execute(
-      'SELECT * FROM Team WHERE Team_ID = ?',
-      [Team_ID]
-    );
-
-    return res.status(201).json({
-      success: true,
-      message: 'Team added successfully',
-      team: newTeam[0],
-    });
-
-  } catch (err) {
-    console.error('Database error:', err);
-
-    // Handle potential unique constraint errors (like duplicate Team_ID or Team_Name)
-    const isDuplicateError = err.code === 'ER_DUP_ENTRY';
-    const errorMessage = isDuplicateError
-      ? 'A team with the same ID or name already exists'
-      : 'An error occurred while adding the team';
-
-    return res.status(500).json({
-      success: false,
-      message: errorMessage,
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined,
-    });
-  }
-});
-
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Loader2 } from 'lucide-react';
+import { Search, Plus, Loader2, Trash2 } from 'lucide-react';
 import { playerApi } from '../services/api';
+import StatusMessage from '../components/StatusMessage';
+import PlayerSearch from '../components/PlayerSearch';
+import PlayerCheck from '../components/PlayerCheck';
+import AddPlayerForm from '../components/AddPlayerForm';
 
 const Players = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,6 +16,7 @@ const Players = () => {
   const [checkResult, setCheckResult] = useState(null);
   const [isChecking, setIsChecking] = useState(false);
   const [playerToCheck, setPlayerToCheck] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const columns = [
     { header: 'ID', accessor: 'Player_ID' },
@@ -45,6 +50,28 @@ const Players = () => {
       setPlayers([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeletePlayer = async (playerId) => {
+    if (!window.confirm('Are you sure you want to delete this player?')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await playerApi.deletePlayer(playerId);
+      if (response.success) {
+        setPlayers(players.filter(player => player.Player_ID !== playerId));
+        setError(null);
+      } else {
+        throw new Error(response.message || 'Failed to delete player');
+      }
+    } catch (error) {
+      console.error('Error deleting player:', error);
+      setError('Failed to delete player. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -97,7 +124,6 @@ const Players = () => {
       const formData = new FormData(e.target);
       const playerName = formData.get('Player_Name');
 
-      // Check if player exists before adding
       const checkData = await playerApi.checkPlayer(playerName);
       if (checkData.exists) {
         setError('Player already exists in the database');
@@ -149,65 +175,30 @@ const Players = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-          <input
-            type="text"
-            placeholder="Search players..."
-            className="pl-10 pr-4 py-2 w-full border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Check if player exists..."
-            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            value={playerToCheck}
-            onChange={(e) => setPlayerToCheck(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
-          <button
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors disabled:bg-green-400 whitespace-nowrap"
-            onClick={checkPlayerExists}
-            disabled={isChecking || !playerToCheck.trim()}
-          >
-            {isChecking ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Checking...
-              </div>
-            ) : (
-              'Check Player'
-            )}
-          </button>
-        </div>
+        <PlayerSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <PlayerCheck 
+          playerToCheck={playerToCheck}
+          setPlayerToCheck={setPlayerToCheck}
+          isChecking={isChecking}
+          onCheck={checkPlayerExists}
+          onKeyPress={handleKeyPress}
+        />
       </div>
 
       {checkResult && (
-        <div 
-          className={`p-4 ${
-            checkResult.exists 
-              ? 'bg-yellow-50 text-yellow-800 border-yellow-200' 
-              : 'bg-green-50 text-green-800 border-green-200'
-          } border rounded-md flex items-center justify-between`}
-        >
-          <span>{checkResult.message}</span>
-          <button
-            onClick={() => setCheckResult(null)}
-            className="text-sm hover:underline"
-          >
-            Dismiss
-          </button>
-        </div>
+        <StatusMessage
+          type={checkResult.exists ? 'warning' : 'success'}
+          message={checkResult.message}
+          onDismiss={() => setCheckResult(null)}
+        />
       )}
 
       {error && (
-        <div className="p-4 text-red-600 bg-red-50 border border-red-200 rounded-md text-center">
-          {error}
-        </div>
+        <StatusMessage
+          type="error"
+          message={error}
+          onDismiss={() => setError(null)}
+        />
       )}
 
       {isLoading && (
@@ -235,6 +226,7 @@ const Players = () => {
                     {column.header}
                   </th>
                 ))}
+                <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -248,6 +240,15 @@ const Players = () => {
                       {player[column.accessor]}
                     </td>
                   ))}
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => handleDeletePlayer(player.Player_ID)}
+                      disabled={isDeleting}
+                      className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -259,46 +260,11 @@ const Players = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-md w-full max-w-2xl mx-4">
             <h2 className="text-xl font-semibold mb-4">Add Player</h2>
-            <form onSubmit={handleAddPlayer}>
-              {['Name', 'Age', 'Team', 'Role', 'Type'].map((field) => (
-                <div key={field} className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    {field}
-                  </label>
-                  <input
-                    type={field === 'Age' ? 'number' : 'text'}
-                    name={`Player_${field}`}
-                    required
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
-              ))}
-
-              <div className="mt-6 flex justify-end gap-4">
-                <button
-                  type="button"
-                  className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
-                  onClick={() => setShowAddPlayer(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors disabled:bg-indigo-400"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Adding...
-                    </div>
-                  ) : (
-                    'Add Player'
-                  )}
-                </button>
-              </div>
-            </form>
+            <AddPlayerForm
+              onSubmit={handleAddPlayer}
+              onCancel={() => setShowAddPlayer(false)}
+              isSubmitting={isSubmitting}
+            />
           </div>
         </div>
       )}

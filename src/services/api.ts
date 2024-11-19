@@ -61,6 +61,11 @@ export const playerApi = {
   }) {
     const response = await api.post('/api/players', playerData);
     return response.data;
+  },
+
+  async deletePlayer(playerId: string) {
+    const response = await api.delete(`/api/players/${playerId}`);
+    return response.data;
   }
 };
 
@@ -80,6 +85,49 @@ export const teamApi = {
     Team_Coach?: string;
   }) {
     const response = await api.post('/api/teams', teamData);
+    return response.data;
+  }
+};
+
+export const matchApi = {
+  async getMatches(search?: string) {
+    const response = await api.get(`/api/matches${search ? `?search=${search}` : ''}`);
+    return response.data;
+  },
+
+  async addMatch(matchData: {
+    Match_Date: string;
+    Match_Format: string;
+    Team_A: string;
+    Team_B: string;
+    Match_Venue: {
+      ground: string;
+      city: string;
+      country: string;
+    };
+  }) {
+    const response = await api.post('/api/matches', matchData);
+    return response.data;
+  }
+};
+
+export const seriesApi = {
+  async getSeries(search?: string) {
+    const response = await api.get(`/api/series${search ? `?search=${search}` : ''}`);
+    return response.data;
+  },
+
+  async addSeries(seriesData: {
+    Series_Name: string;
+    Series_Type: string;
+    Host_Country: string;
+    Series_start: string;
+    Series_end: string;
+    Participating_Teams: string[];
+    Total_Matches: number;
+    Winner?: string;
+  }) {
+    const response = await api.post('/api/series', seriesData);
     return response.data;
   }
 };
