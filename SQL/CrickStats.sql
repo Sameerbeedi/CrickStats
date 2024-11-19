@@ -94,4 +94,16 @@ City char(20),
 Country char(20)
 );
 
+SELECT p.player_name, ps.runs
+FROM playerstats ps
+JOIN player p ON ps.player_id = p.player_id
+WHERE ps.runs IN (
+    SELECT Runs
+    FROM playerstats
+    ORDER BY runs DESC
+    
+)
+ORDER BY ps.runs DESC;
 
+SELECT SUM(runs) AS runs
+FROM player_stats;

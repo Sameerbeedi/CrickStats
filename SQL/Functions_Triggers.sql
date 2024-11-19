@@ -92,7 +92,7 @@ BEGIN
         CONCAT('PE', LPAD(LAST_INSERT_ID(), 3, '0')), -- Generates a new performance ID
         NEW.Match_ID, -- Uses the Match_ID from the new C_Match entry
         'P001', -- Example Player_ID (you may need to customize this)
-        '{"Runs":"0","Balls":"0","4s":"0","6s":"0","S/R":"0.00","Status":"Not Played"}' -- Default stats
+        '{"Runs":"0","Balls":"0","4s":"0","6s":"0","S/R":"0.00","Status":"Not Played"}' 
     );
 END;
 
@@ -185,3 +185,21 @@ DELIMITER ;
 -- DELIMITER ;
 
 
+DELIMITER //
+
+CREATE PROCEDURE GetTopTeamsByWinPercentage()
+BEGIN
+    -- Calculate win percentage for each team
+    SELECT 
+        team_name,
+        (SUM(CASE WHEN result = 'Win' THEN 1 ELSE 0 END) * 100.0) / COUNT(*) AS win_percentage
+    FROM 
+        team_stats
+    GROUP BY 
+        team_name
+    ORDER BY 
+        win_percentage DESC
+    LIMIT 3;
+END //
+
+DELIMITER ;

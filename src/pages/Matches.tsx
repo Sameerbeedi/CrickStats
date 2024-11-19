@@ -1,20 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Loader2 } from 'lucide-react';
 import { Table } from '../components/Table';
+import { matchApi } from '../services/api';
 
 const Matches = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddMatch, setShowAddMatch] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [matches, setMatches] = useState([]);
 
-  const columns = [
-    { header: 'ID', accessor: 'Match_ID' },
-    { header: 'Date', accessor: 'Match_Date' },
-    { header: 'Format', accessor: 'Match_Format' },
-    { header: 'Team A', accessor: 'Team_A' },
-    { header: 'Team B', accessor: 'Team_B' },
-    { header: 'Venue', accessor: 'Match_Venue' }
-  ];
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        const response = await matchApi.getMatches(searchTerm);
+        setMatches(response.matches || []);
+      } catch (error) {
+        console.error('Error fetching matches:', error);
+      }
+    };
+
+    fetchMatches();
+  }, [searchTerm]);
 
   const handleAddMatch = async (e) => {
     e.preventDefault();
@@ -27,15 +33,16 @@ const Matches = () => {
         Match_Format: formData.get('Match_Format'),
         Team_A: formData.get('Team_A'),
         Team_B: formData.get('Team_B'),
-        Match_Venue: {
-          ground: formData.get('Ground'),
-          city: formData.get('City'),
-          country: formData.get('Country')
-        }
+        // Removed venue details from the match data
       };
 
-      // Add API call here
-      console.log('Match Data:', matchData);
+      const response = await matchApi.addMatch(matchData);
+      
+      // Update matches list if response includes the new match
+      if (response.match) {
+        setMatches(prevMatches => [...prevMatches, response.match]);
+      }
+      
       setShowAddMatch(false);
     } catch (error) {
       console.error('Error adding match:', error);
@@ -43,6 +50,15 @@ const Matches = () => {
       setIsSubmitting(false);
     }
   };
+
+  const columns = [
+    { header: 'ID', accessor: 'Match_ID' },
+    { header: 'Date', accessor: 'Match_Date' },
+    { header: 'Format', accessor: 'Match_Format' },
+    { header: 'Team A', accessor: 'Team_A' },
+    { header: 'Team B', accessor: 'Team_B' }
+    // Removed venue from the table columns
+  ];
 
   return (
     <div className="space-y-6 p-6">
@@ -68,7 +84,7 @@ const Matches = () => {
         />
       </div>
 
-      <Table columns={columns} data={[]} />
+      <Table columns={columns} data={matches} />
 
       {showAddMatch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -114,39 +130,6 @@ const Matches = () => {
                     required
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
-                </div>
-              </div>
-
-              <div className="border-t pt-4 mt-4">
-                <h3 className="text-lg font-medium mb-2">Venue Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Ground</label>
-                    <input
-                      type="text"
-                      name="Ground"
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">City</label>
-                    <input
-                      type="text"
-                      name="City"
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Country</label>
-                    <input
-                      type="text"
-                      name="Country"
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
                 </div>
               </div>
 

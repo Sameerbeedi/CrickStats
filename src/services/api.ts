@@ -100,11 +100,7 @@ export const matchApi = {
     Match_Format: string;
     Team_A: string;
     Team_B: string;
-    Match_Venue: {
-      ground: string;
-      city: string;
-      country: string;
-    };
+    
   }) {
     const response = await api.post('/api/matches', matchData);
     return response.data;

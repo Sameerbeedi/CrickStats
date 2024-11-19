@@ -263,6 +263,110 @@ app.post('/api/players', async (req, res) => {
   }
 });
 
+
+// Add GET endpoint for matches
+app.get('/api/matches', async (req, res) => {
+  const searchTerm = req.query.search;
+
+  try {
+    let query = 'SELECT * FROM C_Match';
+    let params = [];
+
+    if (searchTerm) {
+      query = 'SELECT * FROM C_Match WHERE Team_A LIKE ? OR Team_B LIKE ? OR Ground LIKE ?';
+      params = [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`];
+    }
+
+    const [results] = await pool.execute(query, params);
+
+    return res.json({
+      success: true,
+      matches: results,
+      count: results.length
+    });
+
+  } catch (err) {
+    console.error('Database error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'An error occurred while fetching matches',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+app.post('/api/matches', (req, res) => {
+  const { Match_Date, Match_Format, Team_A, Team_B} = req.body;
+
+  // Validation (optional)
+  if (!Match_Date || !Match_Format || !Team_A || !Team_B) {
+    return res.status(400).send('Missing required match data');
+  }
+
+  // Example SQL insert (assuming you are using an ORM like Sequelize or direct SQL queries)
+  const query = 'INSERT INTO c_match (Match_Date, Match_Format, Team_A, Team_B) VALUES (?, ?, ?, ?)';
+  
+  db.query(query, [Match_Date, Match_Format, Team_A, Team_B], (err, result) => {
+    if (err) {
+      console.error('Error adding match:', err);
+      return res.status(500).send('Error adding match');
+    }
+
+    res.status(201).send('Match added successfully');
+  });
+});
+// In the backend (server.js), update the matches endpoint
+// app.post('/api/matches', async (req, res) => {
+//   const { Match_Date, Match_Format, Team_A, Team_B, Match_Venue } = req.body;
+
+//   // Validation
+//   if (!Match_Date || !Match_Format || !Team_A || !Team_B || !Match_Venue) {
+//     return res.status(400).json({
+//       success: false,
+//       message: 'Missing required match data'
+//     });
+//   }
+
+//   try {
+//     const query = `
+//       INSERT INTO C_Match 
+//       (Match_Date, Match_Format, Team_A, Team_B, Ground, City, Country) 
+//       VALUES (?, ?, ?, ?, ?, ?, ?)
+//     `;
+    
+//     const params = [
+//       Match_Date, 
+//       Match_Format, 
+//       Team_A, 
+//       Team_B, 
+//       Match_Venue.ground, 
+//       Match_Venue.city, 
+//       Match_Venue.country
+//     ];
+
+//     const [result] = await pool.execute(query, params);
+    
+//     const [newMatch] = await pool.execute(
+//       'SELECT * FROM Match WHERE Match_ID = ?', 
+//       [result.insertId]
+//     );
+
+//     return res.status(201).json({
+//       success: true,
+//       message: 'Match added successfully',
+//       match: newMatch[0]
+//     });
+
+//   } catch (err) {
+//     console.error('Database error:', err);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'An error occurred while adding the match',
+//       error: process.env.NODE_ENV === 'development' ? err.message : undefined
+//     });
+//   }
+// });
+
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
