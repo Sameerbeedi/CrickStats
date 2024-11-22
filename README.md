@@ -1,4 +1,4 @@
-CrickStats
+CrickStats<br>
 CrickStats is a database management system (DBMS) project that utilizes MySQL for data storage, with a Node.js backend and a React.js + TypeScript frontend. The project leverages the Axios API to seamlessly link the backend and frontend components.
 
 Features
@@ -11,11 +11,8 @@ Project Structure
 Backend (Server Directory)
 Contains all backend logic.
 Run the backend server from this directory using:
-
-bash
-Copy code
 cd server
-node index.js
+node index.js<br>
 Frontend (src Directory)
 Components: Houses reusable UI components like tables and forms.
 Context: Contains authentication logic for signup and login functionality.
