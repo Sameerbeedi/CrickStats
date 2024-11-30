@@ -11,8 +11,12 @@ CrickStats is a database management system (DBMS) project that utilizes MySQL fo
 ### Backend (Server Directory)<br>
 Contains all backend logic.<br>
 ### Run the backend server from this directory using:<br>
-- `cd server`<br>
-- `node index.js`<br>
+ ```bash
+ cd server
+```
+```bash 
+node index.js
+```
 ### Frontend (src Directory)<br>
 - Components: Houses reusable UI components like tables and forms.<br>
 - Context: Contains authentication logic for signup and login functionality.<br>
@@ -29,11 +33,17 @@ Includes SQL files with:<br>
 ## How to Run the Project<br>
 1. Open two terminals.<br>
 2. In the first terminal, navigate to the server directory:<br>
-- `cd server`<br>
-- `node index.js`<br>
+ ```bash
+  cd server
+  ```
+ ```bash
+ node index.js
+```
 3. In the second terminal, start the frontend server:<br>
-- `npm run dev`<br>
-4. Open your browser to access the login page and start using the application.
+```bash
+npm run dev
+```
+5. Open your browser to access the login page and start using the application.
 ## Technologies Used<br>
 - Database: MySQL
 - Backend: Node.js
